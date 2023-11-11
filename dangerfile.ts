@@ -2,17 +2,23 @@ import { message, danger, fail, warn } from 'danger'
 import { dependencies, peerDependencies } from './package.json'
 import { readFileSync } from 'node:fs'
 
-const modifiedMD = danger.git.modified_files.join('- ')
+const modifiedMD = danger.git.modified_files.filter(Boolean).join('\n - ')
 message('Changed Files in this PR: \n - ' + modifiedMD)
+
+const createdMD = danger.git.created_files.filter(Boolean).join('\n - ')
+message('New Files in this PR: \n - ' + createdMD)
+
+const allSourceFiles = [
+  ...danger.git.created_files,
+  ...danger.git.modified_files,
+].filter((path) => path.startsWith('src/'))
 
 if (danger.github?.pr?.body.length < 10) {
   fail('This pull request needs a description.')
 }
 
 const hasCHANGELOGChanges = danger.git.modified_files.includes('CHANGELOG.md')
-const hasLibraryChanges = danger.git.modified_files.some((path) =>
-  path.startsWith('src/')
-)
+const hasLibraryChanges = allSourceFiles.length > 0
 if (hasLibraryChanges && !hasCHANGELOGChanges) {
   warn('This pull request may need a CHANGELOG entry.')
 }
@@ -42,16 +48,10 @@ if (undocumentedPeerDependencies.length) {
   )
 }
 
-console.log(danger.git.modified_files)
-
-const hasNoTestChanges = danger.git.modified_files.filter((modified) => {
-  if (
-    modified.startsWith('src/') &&
-    modified.endsWith('.ts') &&
-    !modified.match(/\.(test|d)\.ts$/)
-  ) {
+const hasNoTestChanges = allSourceFiles.filter((modified) => {
+  if (modified.endsWith('.ts') && !modified.match(/\.(test|d)\.ts$/)) {
     const test = modified.replace(/\.ts$/, '.test.ts')
-    return !danger.git.modified_files.includes(test)
+    return !allSourceFiles.includes(test)
   }
   return false
 })
