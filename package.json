@@ -12,6 +12,8 @@
   "volta": {
     "node": "20.9.0"
   },
+  "dependencies": {},
+  "peerDependencies": {},
   "devDependencies": {
     "@types/eslint": "^8.44.7",
     "@types/node": "^20.9.0",
