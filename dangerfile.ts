@@ -56,12 +56,22 @@ const hasNoTestChanges = allSourceFiles.filter((modified) => {
   return false
 })
 
-const newFilesWithNoTestChanges = hasNoTestChanges.filter((path) =>
-  danger.git.created_files.includes(path)
-)
+const newFilesWithNoTestChanges: string[] = []
+const modifiedFilesWithNoTestChanges: string[] = []
+hasNoTestChanges.forEach((path) => {
+  if (danger.git.created_files.includes(path)) {
+    newFilesWithNoTestChanges.push(path)
+  } else {
+    modifiedFilesWithNoTestChanges.push(path)
+  }
+})
 
-if (hasNoTestChanges.length) {
-  warn(`source files changed without a test: ${hasNoTestChanges.join(', ')}`)
+if (modifiedFilesWithNoTestChanges.length) {
+  warn(
+    `source files changed without a test: ${modifiedFilesWithNoTestChanges.join(
+      ', '
+    )}`
+  )
 }
 if (newFilesWithNoTestChanges.length) {
   fail(
